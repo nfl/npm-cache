@@ -5,7 +5,7 @@ var path = require('path');
 var logger = require('../util/logger');
 var shell = require('shelljs');
 var which = require('which');
-var tar = require('tar');
+var tar = require('tar-fs');
 var fsNode = require('fs');
 var fstream = require('fstream');
 var md5 = require('md5');
@@ -131,14 +131,12 @@ CacheDependencyManager.prototype.archiveDependencies = function (cacheDirectory,
     }
   }
 
-  var packer = tar.Pack({ noProprietary: true })
-                  .on('error', onError)
-                  .on('end', onEnd);
+  // packing a directory
+  tar.pack(installedDirectory)
+    .on('error', onError)
+    .on('end', onEnd)
+    .pipe(dirDest);
 
-  fstream.Reader({path: installedDirectory})
-         .on('error', onError)
-         .pipe(packer)
-         .pipe(dirDest);
 };
 
 CacheDependencyManager.prototype.extractDependencies = function (cachePath, callback) {
@@ -164,12 +162,13 @@ CacheDependencyManager.prototype.extractDependencies = function (cachePath, call
     callback();
   }
 
-  var extractor = tar.Extract({path: targetPath})
-                     .on('error', onError)
-                     .on('end', onEnd);
+  var extractor = tar.extract(installDirectory)
+                     .on('error', onError);
 
+  // extracting a directory
   fs.createReadStream(cachePath)
     .on('error', onError)
+    .on('end', onEnd)
     .pipe(extractor);
 };
 
