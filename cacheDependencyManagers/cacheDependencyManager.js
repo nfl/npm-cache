@@ -162,7 +162,7 @@ CacheDependencyManager.prototype.extractDependencies = function (cachePath, call
     callback();
   }
 
-  var extractor = tar.extract(targetPath)
+  var extractor = tar.extract(installDirectory)
                      .on('error', onError);
 
   // extracting a directory
